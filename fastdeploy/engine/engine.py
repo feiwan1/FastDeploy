@@ -1059,7 +1059,7 @@ class LLMEngine(object):
         llm_logger.info("Launch worker service command: {}".format(pd_cmd))
         p = subprocess.Popen(
             pd_cmd,
-            stdout=subprocess.PIPE,
+            #stdout=subprocess.PIPE,
             shell=True,
             preexec_fn=os.setsid,
         )
@@ -1176,30 +1176,30 @@ class LLMEngine(object):
         Check the initlialize status of workers by stdout logging
         """
 
-        def detect_thread():
-            for line in self.worker_proc.stdout:
-                line = line.decode('utf-8', errors='ignore')
-                if self.worker_init_status.get("finished", False):
-                    break
-                if match := re.search(
-                        r'Loading (?:fastsafetensors |safetensors )?checkpoint shards:\s*(\d+)',
-                        line):
-                    self.worker_init_status["weight_loadding"] = eval(
-                        match.group(1)) * 1.0 / 100
-                elif (match := re.search(r'Start load layer (\d+)',
-                                         line)) or (match := re.search(
-                                             r'set state for layer (\d+)',
-                                             line)):
-                    progress = eval(match.group(
-                        1)) * 1.0 / self.cfg.model_config.num_layers
-                    self.worker_init_status["layer_loadding"] = progress
-                    if self.worker_init_status[
-                            "layer_loadding"] == self.cfg.model_config.num_layers - 1:
-                        self.worker_init_status["finished"] = True
+        #def detect_thread():
+        #    for line in self.worker_proc.stdout:
+        #        line = line.decode('utf-8', errors='ignore')
+        #        if self.worker_init_status.get("finished", False):
+        #            break
+        #        if match := re.search(
+        #                r'Loading (?:fastsafetensors |safetensors )?checkpoint shards:\s*(\d+)',
+        #                line):
+        #            self.worker_init_status["weight_loadding"] = eval(
+        #                match.group(1)) * 1.0 / 100
+        #       elif (match := re.search(r'Start load layer (\d+)',
+        #                                 line)) or (match := re.search(
+        #                                     r'set state for layer (\d+)',
+        #                                     line)):
+        #            progress = eval(match.group(
+        #                1)) * 1.0 / self.cfg.model_config.num_layers
+        #            self.worker_init_status["layer_loadding"] = progress
+        #            if self.worker_init_status[
+        #                    "layer_loadding"] == self.cfg.model_config.num_layers - 1:
+        #                self.worker_init_status["finished"] = True
 
-        self.checking_worker_status_thread = threading.Thread(
-            target=detect_thread, daemon=True)
-        self.checking_worker_status_thread.start()
+        #self.checking_worker_status_thread = threading.Thread(
+        #    target=detect_thread, daemon=True)
+        #self.checking_worker_status_thread.start()
 
         # display weight loadding progress
         with tqdm(total=100, desc="Loading Weights") as pbar:

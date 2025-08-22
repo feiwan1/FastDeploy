@@ -33,6 +33,10 @@ from fastdeploy.model_executor.layers.attention.base_attention_backend import (
 from fastdeploy.model_executor.layers.linear import (
     QKVParallelLinear, RowParallelLinear)
 from fastdeploy.worker.forward_meta import ForwardMeta_HPU
+from fastdeploy.utils import get_logger
+import time
+
+hpu_model_runner_profile_logger = get_logger("hpu_model_runner_profile", "hpu_model_runner_profile.log")
 
 @dataclass
 class BlockAttentionMetadata(AttentionMetadata):
@@ -169,6 +173,7 @@ class BlockAttentionBackend(AttentionBackend_HPU):
         paddlenlp_ops.index_copy_(k_cache, forward_meta.block_indices, key_states, 0)
         paddlenlp_ops.index_copy_(v_cache, forward_meta.block_indices, value_states, 0)
 
+        start_time = time.time()
         out_linear_out = paddlenlp_ops.fused_sdpa_proj_t(
             query_states,
             key_value_states,
@@ -179,6 +184,9 @@ class BlockAttentionBackend(AttentionBackend_HPU):
             causal=True,
             softmax_mode=0,
         )
+        end_time = time.time()
+        execution_time = (end_time - start_time) * 1000
+        hpu_model_runner_profile_logger.info(f"block attention::paddlenlp_ops.fused_sdpa_proj_t execution time(ms): {execution_time}") 
 
         if self.nranks > 1:
             from fastdeploy.distributed.communication_op import \

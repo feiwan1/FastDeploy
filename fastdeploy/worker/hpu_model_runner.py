@@ -50,6 +50,11 @@ def post_process_hpu(sampled_token_ids: paddle.Tensor,
     """ Post-processing steps after completing a single token generation. """
     start_time = time.time()
 
+    #import sys
+    #sys.stdout = sys.__stdout__
+    #import pdb; pdb.set_trace()
+    #import ipdb; ipdb.set_trace()
+
     not_need_stop_hpu = model_output.not_need_stop.to(sampled_token_ids.place)
     is_block_step_hpu = model_output.is_block_step.to(sampled_token_ids.place)
 
