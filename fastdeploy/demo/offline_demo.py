@@ -17,12 +17,12 @@
 from fastdeploy.engine.sampling_params import SamplingParams
 from fastdeploy.entrypoints.llm import LLM
 
-model_name_or_path = "/data/disk2/ckpt/Qwen/Qwen2.5-7B-Instruct"
-# model_name_or_path = "/data/disk2/ERNIE-4.5-21B-A3B-Paddle"
+#model_name_or_path = "/data/disk2/ckpt/Qwen/Qwen2.5-7B-Instruct"
+model_name_or_path = "baidu/ERNIE-4.5-21B-A3B-Paddle"
 # model_name_or_path = "/data/ernie_opensource/ERNIE-4.5-300B-A47B-Paddle/"
 
 # 超参设置
-input_bs = 1
+input_bs = 128
 input_seq = None  # 1000
 max_out_tokens = 128
 server_max_bs = 128
@@ -31,7 +31,7 @@ enTPEP = True
 
 # num_gpu_blocks_override = ceil((input_seq + max_out_tokens) / 128) * server_max_bs
 num_gpu_blocks_override = 2000 
-sampling_params = SamplingParams(max_tokens=max_out_tokens)
+sampling_params = SamplingParams(max_tokens=max_out_tokens, temperature=1.0, top_p=0.01)
 llm = LLM(model=model_name_or_path, \
           tensor_parallel_size=TP, \
 		  enable_tensor_or_expert_parallel=enTPEP, \
