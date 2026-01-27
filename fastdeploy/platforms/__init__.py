@@ -46,6 +46,9 @@ def __getattr__(name: str):
                 _current_platform = NPUPlatform()
             elif paddle.is_compiled_with_custom_device("intel_hpu"):
                 _current_platform = INTEL_HPUPlatform()
+                # Ensure cleanup is registered immediately when platform is selected
+                if hasattr(_current_platform, 'register_cleanup'):
+                    _current_platform.register_cleanup()
             elif paddle.is_compiled_with_custom_device("iluvatar_gpu"):
                 _current_platform = IluvatarPlatform()
             elif paddle.is_compiled_with_custom_device("gcu"):

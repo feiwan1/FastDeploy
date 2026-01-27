@@ -16,10 +16,30 @@ import paddle
 from fastdeploy.utils import console_logger as logger
 
 from .base import Platform, _Backend
-
+import gc
+import atexit
 
 class INTEL_HPUPlatform(Platform):
     device_name = "intel_hpu"
+
+    @classmethod
+    def register_cleanup(cls):
+        """
+        Register cleaning up resources for Intel HPU.
+        """
+        # Ensure cleanup runs only once
+        if hasattr(cls, '_cleanup_registered') and cls._cleanup_registered:
+            return
+        cls._cleanup_registered = True
+
+        def _cleanup_custom_device_resources():
+            # Force garbage collection to ensure objects wrapping device resources 
+            # (e.g., CUDAGraph, Tensor) are destroyed before the DeviceManager 
+            # unloads the intel_hpu plugin.
+            # print("Cleaning up Intel HPU resources via explicit garbage collection...")
+            gc.collect()
+
+        atexit.register(_cleanup_custom_device_resources)
 
     @classmethod
     def available(self):
@@ -28,6 +48,8 @@ class INTEL_HPUPlatform(Platform):
         """
         try:
             assert paddle.base.core.get_custom_device_count("intel_hpu") > 0
+            # Register cleanup hook when HPU is available
+            INTEL_HPUPlatform.register_cleanup()
             return True
         except Exception as e:
             logger.warning(
